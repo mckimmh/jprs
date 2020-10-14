@@ -1,0 +1,77 @@
+---
+title: "Examples"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+devtools::load_all()
+```
+
+```{r}
+# Target density a mixture of Gaussians
+dtarg <- function(x) 0.5*dnorm(x, mean=-1,sd=1) + 0.5*dnorm(x, mean=1, sd=2)
+dtarg_log <- function(x) log(0.5*dnorm(x, mean=-1, sd=1) + 0.5*dnorm(x, mean=1, sd=2))
+
+# Regeneration distribution an overdispersed Gaussian
+dmu <- function(x) dnorm(x, sd=4)
+dmu_log <- function(x) dnorm(x, sd=4, log=TRUE)
+rmu <- function(n) rnorm(n, sd=4)
+
+# Compare target and regeneration distributions
+curve(dtarg(x), from = -10, to = 10)
+curve(dmu(x), from = -10, to = 10, col='green', add=TRUE)
+```
+
+```{r}
+# Random walk Metropolis-Hastings kernel for the target density
+rwmh <- function(x){
+  x_prop <- rnorm(1, x, sd=1)
+  log_alpha <- dtarg_log(x_prop) - dtarg_log(x)
+  u <- runif(1)
+  if (log(u) < log_alpha){
+    x_new <- x_prop
+  } else {
+    x_new <- x
+  }
+  x_new
+}
+
+# Check kernel: Metrpolis-Hastings algorithm
+n <- 1000000
+samples <- rep(0, n)
+samples[1] <- rmu(1)
+for (i in 1:(n-1)){
+  samples[i+1] <- rwmh(samples[i])
+}
+
+plot(density(samples), col='blue', xlim=c(-10,10))
+curve(dtarg(x), from = -5, to = 5, add=TRUE)
+# Estimate of first and second moments (true values 0 and 3.5 respectively)
+mean(samples)
+mean(samples^2)
+```
+
+```{r}
+# Multiple tours of the Reversible Jump process Restore sampler
+ntours <- 100000
+jp <- jprs(ntours, dtarg_log, dmu_log, rmu, rwmh)
+
+# Density plot
+plot(density(jp[,1], weights = jp[,2]/sum(jp[,2])), col='blue', xlim=c(-10,10))
+curve(dtarg(x), from = -5, to = 5, add=TRUE)
+
+# Estimate of first and second moment
+weighted.mean(jp[,1], jp[,2])
+weighted.mean(jp[,1]^2, jp[,2])
+```
