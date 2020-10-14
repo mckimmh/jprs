@@ -18,6 +18,14 @@ knitr::opts_chunk$set(
 devtools::load_all()
 ```
 
+# Introduction to the Restore Jump process
+
+A Restore Jump Process $X$ (see 'Regeneration-enriched Markov processes with application to Monte Carlo' - Wang, Pollock, Roberts, Steinsaltz - 2020) is defined by enriching a jump process $Y$ with regenerations from a distribution $\mu$ at rate $\kappa$. The process thus consists of local and global dynamics. The local dynamics determine how the jump process changes between regenerations. The global dynamics dictate how and when the process regenerates. Given a target denstiy $\pi$, a jump process $Y$ and regeneration distribution $\mu$, it is possible to choose the regeneration rate $\kappa$ such that the invariant distribution of $X$ is $\pi$. This allows the Restore Jump process to be used as a Monte Carlo method. In particular, when $Y$ is a jump process defined by a discrete time reversible Markov transition kernel $P$ on its jump chain, and constant holding rate $\lambda=1$, then $\pi$ is the invariant density of $X$ when $\kappa(x)=\mu(x)/\pi(x)$.
+
+At regeneration times, the future of the process is independent of the past and identically distributed. This is useful because it allows the segments of $X$ between regeneration times, called tours, to be generated in parallel. Furthermore, when $\pi$ is a multi-modal distribution, regenerations can encourage the process to move between modes.
+
+This example shows how a Restore Jump Process can be used to sample from a mixture of univariate Gaussians.
+
 ```{r}
 # Target density a mixture of Gaussians
 dtarg <- function(x) 0.5*dnorm(x, mean=-1,sd=1) + 0.5*dnorm(x, mean=1, sd=2)
@@ -28,8 +36,8 @@ dmu <- function(x) dnorm(x, sd=4)
 dmu_log <- function(x) dnorm(x, sd=4, log=TRUE)
 rmu <- function(n) rnorm(n, sd=4)
 
-# Compare target and regeneration distributions
-curve(dtarg(x), from = -10, to = 10)
+# Compare target (black) and regeneration (green) distributions
+curve(dtarg(x), from = -10, to = 10, ylab='density')
 curve(dmu(x), from = -10, to = 10, col='green', add=TRUE)
 ```
 
@@ -55,7 +63,7 @@ for (i in 1:(n-1)){
   samples[i+1] <- rwmh(samples[i])
 }
 
-plot(density(samples), col='blue', xlim=c(-10,10))
+plot(density(samples), col='blue', xlim=c(-10,10), main='Density estimate')
 curve(dtarg(x), from = -5, to = 5, add=TRUE)
 # Estimate of first and second moments (true values 0 and 3.5 respectively)
 mean(samples)
@@ -68,7 +76,8 @@ ntours <- 100000
 jp <- jprs(ntours, dtarg_log, dmu_log, rmu, rwmh)
 
 # Density plot
-plot(density(jp[,1], weights = jp[,2]/sum(jp[,2])), col='blue', xlim=c(-10,10))
+plot(density(jp[,1], weights = jp[,2]/sum(jp[,2])), col='blue', xlim=c(-10,10),
+     main='Density estimate')
 curve(dtarg(x), from = -5, to = 5, add=TRUE)
 
 # Estimate of first and second moment
