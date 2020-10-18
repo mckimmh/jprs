@@ -1,4 +1,5 @@
-#' Single tour of Reversible Jump Process Restore Sampler
+#' Single tour of the Jump Process Restore Sampler when the jump chain of
+#' the underlying jump process has a reversible transition kernel.
 #'
 #' Assumes the holding rate is 1.
 #' Assumes C * (normalising constant of target) = 1.
@@ -6,7 +7,7 @@
 #' @param dtarg_log Function to evaluate the log target density
 #' @param dmu_log Function to evaluate the log regeneration distribution
 #' @param rmu Function to simulate n times from the regeneration distribution
-#' @param mh_kern Metrpolis-Hastings kernel.
+#' @param mh_kern Metropolis-Hastings kernel.
 #' Input: current state. Output next state.
 #' @return A matrix with first d rows (d the dimension of the target density)
 #' the jump chain and last row the holding time for the jump process.
@@ -63,7 +64,8 @@ jprs_tour <- function(dtarg_log, dmu_log, rmu, mh_kern){
   x[1:i,]
 }
 
-#' Reversible Jump Process Restore Sampler
+#' Jump Process Restore Sampler when the jump chain of
+#' the underlying jump process has a reversible transition kernel.
 #'
 #' Assumes the holding rate is 1.
 #' Assumes C * (normalising constant of target) = 1.

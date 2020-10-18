@@ -55,7 +55,7 @@ rwmh <- function(x){
   x_new
 }
 
-# Check kernel: Metrpolis-Hastings algorithm
+# Check kernel: Metropolis-Hastings algorithm
 n <- 1000000
 samples <- rep(0, n)
 samples[1] <- rmu(1)
@@ -71,7 +71,7 @@ mean(samples^2)
 ```
 
 ```{r}
-# Multiple tours of the Reversible Jump process Restore sampler
+# Jump Process Restore Sampler
 ntours <- 100000
 jp <- jprs(ntours, dtarg_log, dmu_log, rmu, rwmh)
 
